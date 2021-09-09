@@ -6,12 +6,32 @@ import netlas
 
 
 KEYFILE = '.key'
+MAX_RESULTS = 20
 
 
 def email_query(conn, descr, query, email):
-    query_res = conn.query(query=query.format(email=email))
+    if '@' in email:
+        email_str = email
+    else:
+        email_str = f'"*@{email}"'
+
+    query_str = query.format(email=email_str)
+    count_res = conn.count(query=query_str).get("count", 0)
+
+    if not count_res:
+        print(f'{descr} search did\'t return results')
+        return None
+
+    print(f'{descr} search can return {count_res} results')
+
+    query_res = conn.query(query=query_str)
     results_count = len(query_res['items'])
-    print(f'{descr} search returned {results_count} results')
+    print(f'Downloading {results_count} results...')
+
+    if results_count == MAX_RESULTS:
+        print(f'Downloaded first {MAX_RESULTS} results only. '
+              f'You can get all the results manually with a query <{query_str}>')
+
     if results_count:
         filename = f'{descr}_{email}_results.json'
         with open(filename, 'w') as f:
@@ -25,10 +45,10 @@ def search(key, email):
     result_files = []
     conn = netlas.Netlas(api_key=key)
     search_methods = {
-        'Whois': f'whois.val.raw:{email}',
-        'SSL': f'certificate.subject.email_address:{email}',
-        'Contacts': f'contacts.email:{email}',
-        'Webpage': f'http.body:{email}',
+        'Whois': 'whois.val.raw:{email}',
+        'SSL': 'certificate.subject.email_address:{email}',
+        'Contacts': 'contacts.email:{email}',
+        'Webpage': 'http.body:{email}',
     }
     for descr, query in search_methods.items():
         result_files.append(email_query(conn, descr, query, email))
@@ -54,9 +74,9 @@ if __name__ == '__main__':
     else:
         email = input('Enter target email: ')
 
-    filenames = filter(lambda x: x, search(key, email))
+    filenames = list(filter(lambda x: x, search(key, email)))
 
-    if filenames:
-        print('\nFound data saved to following files:')
+    if len(filenames):
+        print('\nDownloaded data was saved to following files:')
         for f in filenames:
             print(f'\t{f}')
