@@ -1,10 +1,20 @@
 # netlas-email-search
 
-Search emails with Netlas.io.
+Search emails with Netlas.io in the following sources:
+- Whois data
+- SSL certificates
+- Sites contact data
+- Web pages content
+
+## Installation
+
+1. _pip3 install -r requirements.txt_
+
+2. Copy API key from your [Profile page](https://app.netlas.io/profile/)
+
+3. Just run the script!
 
 ## Usage
-
-	pip3 install -r requirements.txt
 
 Search by a specific email address:
 
@@ -36,4 +46,4 @@ Downloaded data was saved to following files:
 
 ## TODO
 
-[ ] Data downloading from Netlas
+- [ ] Data downloading from Netlas
